@@ -3,14 +3,27 @@
 #include <assert.h>
 #include <libvdeplug.h>
 #include <net/ethernet.h>
+#include <sched.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <sys/socket.h>
+#include <sys/syscall.h>
 #include <time.h>
 #include <unistd.h>
 
 int main(int argc, char *argv[]) {
+  if (argc < 2) {
+    fprintf(stderr, "Usage:\n\npid=\"$(pgrep -n ...)\" %s /path/to/vdedir\n",
+            argv[0]);
+    return 1;
+  }
+  if (getenv("pid")) {
+    assert(setns(syscall(SYS_pidfd_open, atoi(getenv("pid")), 0),
+                 CLONE_NEWNS) >= 0);
+  }
   int sock = vde_datafd(vde_open(argv[1], argv[0], 0));
-  assert(sock != -1);
+  assert(sock >= 0);
   struct {
     uint32_t magic;
     uint16_t version_major;
