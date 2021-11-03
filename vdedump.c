@@ -1,13 +1,16 @@
 #define _GNU_SOURCE
 #include <arpa/inet.h>
+#include <assert.h>
+#include <libvdeplug.h>
 #include <net/ethernet.h>
 #include <stdint.h>
 #include <sys/socket.h>
 #include <time.h>
 #include <unistd.h>
 
-int main() {
-  int sock = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
+int main(int argc, char *argv[]) {
+  int sock = vde_datafd(vde_open(argv[1], argv[0], 0));
+  assert(sock != -1);
   struct {
     uint32_t magic;
     uint16_t version_major;
